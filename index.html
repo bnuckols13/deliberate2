@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deliberate Practice Trainer</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    :root {
+      --primary-teal: #5EEAD4;
+      --deep-teal: #14B8A6;
+      --soft-purple: #C084FC;
+      --warm-rose: #FDA4AF;
+      --calm-blue: #93C5FD;
+      --sage-green: #87A878;
+      --midnight: #1E293B;
+      --slate: #475569;
+      --warm-gray: #6B6B6B;
+      --pearl: #F8FAFC;
+      --gradient-calm: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-nature: linear-gradient(135deg, #5EEAD4 0%, #93C5FD 100%);
+      --gradient-warm: linear-gradient(135deg, #FDA4AF 0%, #C084FC 100%);
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      min-height: 100vh;
+      padding: 0;
+      color: var(--midnight);
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Persistent Navigation */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: white;
+      border-bottom: 2px solid rgba(135, 168, 120, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .nav-home-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      background: white;
+      border: 2px solid rgba(135, 168, 120, 0.3);
+      border-radius: 50px;
+      color: var(--sage-green);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-home-btn:hover {
+      border-color: var(--sage-green);
+      background: rgba(135, 168, 120, 0.08);
+      transform: translateY(-1px);
+    }
+    
+    .nav-home-btn::before {
+      content: '◈';
+      font-size: 1.1rem;
+    }
+    
+    .nav-progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--slate);
+    }
+    
+    .nav-progress-bar {
+      width: 150px;
+      height: 6px;
+      background: rgba(135, 168, 120, 0.15);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .nav-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sage-green) 0%, var(--soft-purple) 100%);
+      transition: width 0.5s ease;
+      border-radius: 10px;
+    }
+    
+    .main-content {
+      padding: 2rem;
+    }
+    
+    /* Floating background elements */
+    .bg-circle {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.3;
+      animation: float 20s infinite ease-in-out;
+      pointer-events: none;
+    }
+    
+    .bg-circle1 {
+      width: 300px;
+      height: 300px;
+      background: var(--primary-teal);
+      top: -100px;
+      right: -100px;
+    }
+    
+    .bg-circle2 {
+      width: 400px;
+      height: 400px;
+      background: var(--soft-purple);
+      bottom: -150px;
+      left: -150px;
+      animation-delay: -5s;
+    }
+    
+    .bg-circle3 {
+      width: 250px;
+      height: 250px;
+      background: var(--warm-rose);
+      top: 50%;
+      right: 10%;
+      animation-delay: -10s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeIn 0.8s ease;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: var(--gradient-calm);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+    
+    header p {
+      color: var(--warm-gray);
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+    
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-nature);
+    }
+    
+    /* Mode Selection */
+    .mode-select {
+      padding: 2.5rem 2rem;
+    }
+    
+    .mode-select h2 {
+      font-size: 1.3rem;
+      color: var(--deep-teal);
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .mode-btn {
+      padding: 1.75rem 1.25rem;
+      border: 2px solid rgba(94, 234, 212, 0.2);
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--pearl) 0%, white 100%);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      position: relative;
+    }
+    
+    .mode-btn:hover {
+      border-color: var(--primary-teal);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(94, 234, 212, 0.2);
+    }
+    
+    .mode-btn.selected {
+      border-color: var(--primary-teal);
+      background: rgba(94, 234, 212, 0.05);
+    }
+    
+    .mode-btn .icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--deep-teal);
+    }
+    
+    .mode-btn .label {
+      font-weight: 600;
+      color: var(--midnight);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .mode-btn .desc {
+      font-size: 0.85rem;
+      color: var(--slate);
+      line-height: 1.4;
+    }
+    
+    /* Skill Selection */
+    .skill-select {
+      padding: 2rem;
+    }
+    
+    /* Learning Screen */
+    .learning-screen {
+      padding: 2rem;
+    }
+    
+    .learning-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 2px solid rgba(94, 234, 212, 0.2);
+    }
+    
+    .learning-header h2 {
+      font-size: 1.8rem;
+      color: var(--midnight);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    
+    .learning-header .skill-type {
+      font-size: 0.9rem;
+      color: var(--deep-teal);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .learning-section {
+      margin-bottom: 2rem;
+    }
+    
+    .learning-section h3 {
+      font-size: 1.2rem;
+      color: var(--deep-teal);
+      margin-bottom: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .learning-section h3::before {
+      content: '◆';
+      font-size: 1rem;
+      color: var(--primary-teal);
+    }
+    
+    .definition-box {
+      background: linear-gradient(135deg, rgba(94, 234, 212, 0.05) 0%, rgba(147, 197, 253, 0.05) 100%);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border-left: 3px solid var(--primary-teal);
+      line-height: 1.7;
+      color: var(--slate);
+    }
+    
+    .criteria-list {
+      background: linear-gradient(135deg, rgba(253, 164, 175, 0.05) 0%, rgba(192, 132, 252, 0.05) 100%);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border-left: 3px solid var(--warm-rose);
+    }
+    
+    .criteria-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .criteria-list li {
+      padding: 0.5rem 0;
+      color: var(--slate);
+      line-height: 1.6;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .criteria-list li::before {
+      content: '✦';
+      color: var(--warm-rose);
+      font-size: 0.9rem;
+      margin-top: 0.2rem;
+      flex-shrink: 0;
+    }
+    
+    .examples-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .example-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 2px solid rgba(135, 168, 120, 0.2);
+      transition: all 0.3s ease;
+    }
+    
+    .example-card:hover {
+      border-color: var(--sage-green);
+      box-shadow: 0 5px 20px rgba(135, 168, 120, 0.1);
+    }
+    
+    .example-card .client-quote {
+      font-style: italic;
+      color: var(--midnight);
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: rgba(147, 197, 253, 0.08);
+      border-radius: 8px;
+      line-height: 1.6;
+    }
+    
+    .example-card .therapist-response {
+      color: var(--sage-green);
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .example-card .therapist-response::before {
+      content: '→';
+    }
+    
+    .example-card .response-text {
+      color: var(--slate);
+      line-height: 1.6;
+    }
+    
+    .skill-tabs {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .skill-tab {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(94, 234, 212, 0.1);
+      color: var(--deep-teal);
+    }
+    
+    .skill-tab.active {
+      background: var(--gradient-nature);
+      color: white;
+      box-shadow: 0 4px 15px rgba(94, 234, 212, 0.3);
+    }
+    
+    .skill-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    
+    .skill-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border: 2px solid rgba(94, 234, 212, 0.2);
+      border-radius: 14px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+    
+    .skill-btn:hover {
+      border-color: var(--primary-teal);
+      background: rgba(94, 234, 212, 0.05);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(94, 234, 212, 0.15);
+    }
+    
+    .skill-btn .name {
+      font-weight: 600;
+      color: var(--midnight);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .skill-btn .symbol {
+      font-size: 1.3rem;
+      color: var(--deep-teal);
+    }
+    
+    .skill-btn .level {
+      font-size: 0.75rem;
+      padding: 0.375rem 0.875rem;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    
+    .level-beginner { background: rgba(135, 168, 120, 0.2); color: #4a6741; }
+    .level-intermediate { background: rgba(253, 164, 175, 0.2); color: #b8485f; }
+    .level-advanced { background: rgba(192, 132, 252, 0.2); color: #7c3aed; }
+    
+    /* Practice Screen */
+    .practice-screen {
+      display: none;
+    }
+    
+    .practice-screen.active {
+      display: block;
+    }
+    
+    .progress-bar {
+      height: 6px;
+      background: rgba(94, 234, 212, 0.15);
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-nature);
+      transition: width 0.5s ease;
+    }
+    
+    .practice-header {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid rgba(94, 234, 212, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(94, 234, 212, 0.03) 0%, rgba(147, 197, 253, 0.03) 100%);
+    }
+    
+    .practice-header .skill-name {
+      font-weight: 600;
+      color: var(--midnight);
+      font-size: 1rem;
+    }
+    
+    .practice-header .counter {
+      font-size: 0.875rem;
+      color: var(--slate);
+      font-weight: 500;
+    }
+    
+    .client-section {
+      padding: 2rem 1.75rem;
+      background: linear-gradient(135deg, rgba(147, 197, 253, 0.05) 0%, rgba(192, 132, 252, 0.05) 100%);
+    }
+    
+    .client-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--deep-teal);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .client-label::before {
+      content: '◈';
+      font-size: 1rem;
+    }
+    
+    .client-statement {
+      font-size: 1.15rem;
+      color: var(--midnight);
+      line-height: 1.7;
+      font-style: italic;
+      font-weight: 400;
+    }
+    
+    .affect-hint {
+      margin-top: 1rem;
+      padding: 1rem 1.25rem;
+      background: rgba(94, 234, 212, 0.1);
+      border-left: 3px solid var(--primary-teal);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      color: var(--deep-teal);
+      line-height: 1.5;
+    }
+    
+    .response-section {
+      padding: 1.75rem;
+    }
+    
+    .instruction {
+      font-size: 0.9rem;
+      color: var(--slate);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .instruction .symbol {
+      font-size: 1.3rem;
+      color: var(--deep-teal);
+    }
+    
+    .response-input {
+      width: 100%;
+      min-height: 120px;
+      padding: 1.25rem;
+      border: 2px solid rgba(94, 234, 212, 0.3);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      line-height: 1.6;
+      resize: vertical;
+      transition: all 0.3s ease;
+      background: white;
+      color: var(--midnight);
+    }
+    
+    .response-input:focus {
+      outline: none;
+      border-color: var(--primary-teal);
+      box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.1);
+    }
+    
+    .response-input::placeholder {
+      color: var(--warm-gray);
+      opacity: 0.6;
+    }
+    
+    /* Example Section */
+    .example-section {
+      padding: 0 1.75rem 1.75rem;
+      display: none;
+    }
+    
+    .example-section.visible {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+    
+    .example-box {
+      background: linear-gradient(135deg, rgba(135, 168, 120, 0.08) 0%, rgba(94, 234, 212, 0.08) 100%);
+      border: 2px solid rgba(135, 168, 120, 0.3);
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+    
+    .example-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--sage-green);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .example-label::before {
+      content: '✦';
+      font-size: 1rem;
+    }
+    
+    .example-text {
+      font-size: 0.975rem;
+      color: var(--midnight);
+      line-height: 1.6;
+    }
+    
+    .criteria-box {
+      margin-top: 1rem;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, rgba(253, 164, 175, 0.08) 0%, rgba(192, 132, 252, 0.08) 100%);
+      border: 2px solid rgba(253, 164, 175, 0.3);
+      border-radius: 12px;
+    }
+    
+    .criteria-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--warm-rose);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .criteria-label::before {
+      content: '◆';
+      font-size: 0.9rem;
+    }
+    
+    .criteria-text {
+      font-size: 0.875rem;
+      color: var(--slate);
+      line-height: 1.5;
+    }
+    
+    /* Actions */
+    .actions {
+      padding: 1.25rem 1.75rem;
+      border-top: 1px solid rgba(94, 234, 212, 0.2);
+      display: flex;
+      gap: 0.875rem;
+      background: rgba(248, 250, 252, 0.5);
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: var(--deep-teal);
+      border: 2px solid var(--primary-teal);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(94, 234, 212, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    .btn-primary {
+      background: var(--gradient-nature);
+      color: white;
+      box-shadow: 0 4px 15px rgba(94, 234, 212, 0.3);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(94, 234, 212, 0.4);
+    }
+    
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--slate);
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 0.75rem;
+      margin-bottom: 1.25rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    .btn-back:hover {
+      color: var(--deep-teal);
+    }
+    
+    .btn-back::before {
+      content: '← ';
+    }
+    
+    /* Progress encouragement */
+    .progress-encouragement {
+      padding: 1rem 1.75rem;
+      background: linear-gradient(135deg, rgba(135, 168, 120, 0.08) 0%, rgba(94, 234, 212, 0.08) 100%);
+      border-bottom: 1px solid rgba(94, 234, 212, 0.2);
+      text-align: center;
+      color: var(--slate);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .progress-encouragement .highlight {
+      color: var(--deep-teal);
+      font-weight: 600;
+    }
+    
+    /* Completion */
+    .completion-screen {
+      padding: 4rem 2rem;
+      text-align: center;
+      display: none;
+    }
+    
+    .completion-screen.active {
+      display: block;
+      animation: fadeIn 0.6s ease;
+    }
+    
+    .completion-icon {
+      font-size: 4.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--deep-teal);
+    }
+    
+    .completion-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--midnight);
+      margin-bottom: 0.75rem;
+    }
+    
+    .completion-text {
+      color: var(--slate);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+    
+    /* Custom Input */
+    .custom-input {
+      padding: 2rem;
+    }
+    
+    .custom-input label {
+      display: block;
+      margin-bottom: 0.75rem;
+      color: var(--midnight);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    
+    .custom-input select {
+      width: 100%;
+      padding: 1rem 1.25rem;
+      border: 2px solid rgba(94, 234, 212, 0.3);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--midnight);
+    }
+    
+    .custom-input select:focus {
+      outline: none;
+      border-color: var(--primary-teal);
+      box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.1);
+    }
+    
+    .custom-input > div {
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Hidden */
+    .hidden { 
+      display: none !important; 
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .app-header {
+        padding: 0.875rem 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .skill-tabs {
+        flex-wrap: wrap;
+      }
+      
+      .actions {
+        flex-direction: column;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+      
+      .learning-screen,
+      .custom-input {
+        padding: 1.5rem;
+      }
+    }
+    
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating Background Elements -->
+  <div class="bg-circle bg-circle1"></div>
+  <div class="bg-circle bg-circle2"></div>
+  <div class="bg-circle bg-circle3"></div>
+
+  <!-- Persistent Top Navigation -->
+  <nav class="top-nav">
+    <button class="nav-home-btn" id="navHomeBtn">Home</button>
+    <div class="nav-progress" id="navProgress" style="display: none;">
+      <span id="navProgressText">Practice in progress</span>
+      <div class="nav-progress-bar">
+        <div class="nav-progress-fill" id="navProgressFill" style="width: 0%"></div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <div class="container">
+      <header>
+        <h1>Deliberate Practice</h1>
+        <p>MI & EFT Solo Training</p>
+      </header>
+      
+      <div class="card">
+      <!-- Mode Selection -->
+      <div class="mode-select" id="modeSelect">
+        <h2>Choose Practice Mode</h2>
+        <div class="mode-grid">
+          <button class="mode-btn" data-mode="mi">
+            <div class="icon">ᚱ</div>
+            <div class="label">Motivational Interviewing</div>
+            <div class="desc">Reflections, change talk, resistance</div>
+          </button>
+          <button class="mode-btn" data-mode="eft">
+            <div class="icon">◬</div>
+            <div class="label">Emotion-Focused</div>
+            <div class="desc">Empathy, affect, conjecture</div>
+          </button>
+          <button class="mode-btn" data-mode="mixed">
+            <div class="icon">≋</div>
+            <div class="label">Mixed Practice</div>
+            <div class="desc">Random from both</div>
+          </button>
+          <button class="mode-btn" data-mode="custom">
+            <div class="icon">✧</div>
+            <div class="label">Custom Statement</div>
+            <div class="desc">Practice your own case</div>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Skill Selection -->
+      <div class="skill-select hidden" id="skillSelect">
+        <button class="btn-back" id="backToMode">Back</button>
+        <div class="skill-tabs">
+          <button class="skill-tab active" data-level="all">All Levels</button>
+          <button class="skill-tab" data-level="beginner">Beginner</button>
+          <button class="skill-tab" data-level="intermediate">Intermediate</button>
+          <button class="skill-tab" data-level="advanced">Advanced</button>
+        </div>
+        <div class="skill-list" id="skillList"></div>
+      </div>
+      
+      <!-- Learning Screen -->
+      <div class="learning-screen hidden" id="learningScreen">
+        <button class="btn-back" id="backToSkills">Back to Skills</button>
+        
+        <div class="learning-header">
+          <div class="skill-type" id="learningType">Motivational Interviewing</div>
+          <h2 id="learningTitle">Complex Reflections</h2>
+        </div>
+        
+        <div class="learning-section">
+          <h3>What is this skill?</h3>
+          <div class="definition-box" id="conceptualDef">
+            <!-- Conceptual definition will be inserted here -->
+          </div>
+        </div>
+        
+        <div class="learning-section">
+          <h3>How do you know you're doing it right?</h3>
+          <div class="criteria-list">
+            <ul id="criteriaList">
+              <!-- Criteria items will be inserted here -->
+            </ul>
+          </div>
+        </div>
+        
+        <div class="learning-section">
+          <h3>Examples in action</h3>
+          <div class="examples-grid" id="examplesGrid">
+            <!-- Example cards will be inserted here -->
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button class="btn btn-primary" id="startPracticeBtn">Ready to Practice</button>
+        </div>
+      </div>
+      
+      <!-- Custom Input -->
+      <div class="custom-input hidden" id="customInput">
+        <button class="btn-back" id="backFromCustom">Back</button>
+        <div>
+          <label>Enter your client's statement:</label>
+          <textarea class="response-input" id="customStatement" placeholder="E.g., 'I know I should quit, but it's the only thing that helps me relax...'"></textarea>
+        </div>
+        <div>
+          <label>What skill do you want to practice?</label>
+          <select id="customSkill">
+            <option value="reflection">Simple Reflection</option>
+            <option value="complex-reflection">Complex Reflection (name emotion)</option>
+            <option value="change-talk">Elicit Change Talk</option>
+            <option value="roll-resistance">Roll with Resistance</option>
+            <option value="empathic-understanding">Empathic Understanding</option>
+            <option value="empathic-exploration">Empathic Exploration (deepen)</option>
+            <option value="empathic-conjecture">Empathic Conjecture</option>
+            <option value="stay-with-affect">Stay with Affect</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="startCustom">Start Practice</button>
+        </div>
+      </div>
+      
+      <!-- Practice Screen -->
+      <div class="practice-screen" id="practiceScreen">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        
+        <div class="practice-header">
+          <span class="skill-name" id="skillName">Complex Reflections</span>
+          <span class="counter" id="counter">1 / 5</span>
+        </div>
+        
+        <div class="progress-encouragement" id="progressEncouragement">
+          You're doing great! <span class="highlight" id="encouragementText">Take your time with each response.</span>
+        </div>
+        
+        <div class="client-section">
+          <div class="client-label">Client says</div>
+          <div class="client-statement" id="clientStatement">"Loading..."</div>
+          <div class="affect-hint" id="affectHint"></div>
+        </div>
+        
+        <div class="response-section">
+          <div class="instruction">
+            <span class="symbol">⚯</span>
+            <span>Say your response out loud, then write it:</span>
+          </div>
+          <textarea class="response-input" id="responseInput" placeholder="Type your response here..."></textarea>
+        </div>
+        
+        <div class="example-section" id="exampleSection">
+          <div class="example-box">
+            <div class="example-label">Example Response</div>
+            <div class="example-text" id="exampleText"></div>
+          </div>
+          <div class="criteria-box">
+            <div class="criteria-label">Criteria</div>
+            <div class="criteria-text" id="criteriaText"></div>
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button class="btn btn-secondary" id="showExample">Show Example</button>
+          <button class="btn btn-primary" id="nextBtn">Next</button>
+        </div>
+      </div>
+      
+      <!-- Completion Screen -->
+      <div class="completion-screen" id="completionScreen">
+        <div class="completion-icon">△</div>
+        <div class="completion-title">Practice Complete</div>
+        <div class="completion-text">You practiced <span id="completedCount">5</span> responses.</div>
+        <div class="actions" style="border: none; padding-top: 0;">
+          <button class="btn btn-secondary" id="reviewBtn">Review Responses</button>
+          <button class="btn btn-primary" id="restartBtn">Practice Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    // Exercise Data with Learning Content
+    const exercises = {
+      mi: {
+        "Simple Reflections": {
+          level: "beginner",
+          conceptual: "Simple reflections are the foundation of Motivational Interviewing. They demonstrate that you're listening and understanding without adding interpretation, advice, or judgment. You're essentially holding up a mirror to help the client hear themselves more clearly.",
+          criteria: "Captures essence without parroting; no questions; no advice; no interpretation",
+          criteriaList: [
+            "Captures the core meaning of what the client said",
+            "Uses different words than the client (not parroting)",
+            "Stated as an observation, not a question",
+            "No advice, solutions, or 'why' questions embedded",
+            "No interpretation beyond what was explicitly stated"
+          ],
+          examples: [
+            {
+              client: "I keep telling myself I should just get over it, but the anxiety keeps coming back.",
+              response: "You're trying to push through, but the anxiety persists."
+            },
+            {
+              client: "I don't have the energy to do anything anymore. Everything feels like too much effort.",
+              response: "Even small things feel overwhelming right now."
+            },
+            {
+              client: "Part of me wants to open up, but another part thinks it's safer to keep people at a distance.",
+              response: "You're of two minds about letting people in."
+            }
+          ],
+          statements: [
+            { client: "I keep saying yes to everyone, even when I'm exhausted. I don't know how to stop.", example: "You're caught in a pattern of putting everyone else first, even at your own expense." },
+            { client: "I don't even know who I am anymore. I've spent so long being what everyone else needed.", example: "You've lost touch with yourself while meeting everyone else's expectations." },
+            { client: "I've tried quitting before. It never sticks.", example: "You've made attempts, and they haven't lasted." },
+            { client: "Part of me wants to change, but another part thinks things are fine.", example: "You're of two minds about this." },
+            { client: "Sometimes I wonder if people would even like the real me.", example: "There's uncertainty about whether your authentic self would be accepted." }
+          ]
+        },
+        "Complex Reflections": {
+          level: "intermediate",
+          conceptual: "Complex reflections go deeper than simple reflections by naming or implying the emotional experience underneath the client's words. They help clients become more aware of their feelings and create space for emotional exploration. The key is being tentative—you're offering a possibility, not making a declaration.",
+          criteria: "Names or implies emotional state; tentative/curious tone; opens space for elaboration",
+          criteriaList: [
+            "Identifies or implies an emotion (stated or unstated)",
+            "Uses tentative language ('maybe,' 'sounds like,' 'perhaps')",
+            "Goes slightly beyond the explicit content",
+            "Opens space rather than closing it down",
+            "Maintains curiosity rather than certainty"
+          ],
+          examples: [
+            {
+              client: "Ever since it happened, I can't shake this feeling that something bad is about to happen again.",
+              response: "There's a vigilance that won't let up—like you're bracing for the next thing."
+            },
+            {
+              client: "I keep trying to be positive, but inside I feel like I'm drowning and no one can tell.",
+              response: "There's exhaustion underneath the smile—like you're working so hard to keep it together, and it's lonely."
+            },
+            {
+              client: "When they criticized my work, I just wanted to disappear. I felt like such a failure.",
+              response: "That shame hit hard—like their words confirmed something you already feared about yourself."
+            }
+          ],
+          statements: [
+            { client: "I know I need to set boundaries, but I feel so guilty when I say no to people.", hint: "Target: guilt, fear of disappointing, self-abandonment", example: "There's real guilt there—like saying no means you're letting people down, even when you're running on empty." },
+            { client: "I've spent my whole life trying to figure out who I'm supposed to be. I'm exhausted.", hint: "Target: identity confusion, exhaustion, pressure", example: "That's exhausting—like you've been performing for so long, you've lost the thread of who you actually are." },
+            { client: "I've tried quitting before. It never sticks.", hint: "Target: discouragement, hopelessness, shame", example: "There's some real discouragement there—maybe even wondering if there's something wrong with you that it doesn't work." },
+            { client: "When people need me, I can't say no. But then I resent them for asking.", hint: "Target: trapped, resentment, powerlessness", example: "You feel stuck—like you have no choice but to say yes, and then the resentment builds." },
+            { client: "I'm afraid if I stop being helpful, people won't want me around anymore.", hint: "Target: fear of abandonment, conditional worth", example: "There's fear underneath that—like your value depends on what you can do for others, not just who you are." }
+          ]
+        },
+        "Eliciting Change Talk": {
+          level: "intermediate",
+          conceptual: "Rather than telling clients why they should change, eliciting change talk helps clients voice their own reasons, desires, and ability to change. When people hear themselves argue for change, they become more committed to it. These questions invite exploration without pushing.",
+          criteria: "Asks questions that invite the client to voice their own reasons for change",
+          criteriaList: [
+            "Framed as genuine curiosity, not rhetorical",
+            "Invites exploration of benefits, not problems",
+            "Helps client articulate their own 'why'",
+            "Opens possibilities rather than prescribing solutions",
+            "Respects autonomy—client chooses what to explore"
+          ],
+          examples: [
+            {
+              client: "I used to enjoy things. Now everything just feels flat.",
+              response: "What was different about that time when things had color?"
+            },
+            {
+              client: "The panic attacks are ruining my life. I can't even go to the grocery store anymore.",
+              response: "What would it be like if you could move through your day without that fear?"
+            },
+            {
+              client: "I keep ending up in relationships where I feel invisible.",
+              response: "What would it feel like to be truly seen by someone?"
+            }
+          ],
+          statements: [
+            { client: "I used to have hobbies and interests. Now I just do what everyone else wants.", example: "What would it be like to reconnect with what matters to you?" },
+            { client: "Everyone says I'm so helpful, but inside I feel invisible.", example: "What would being truly seen look like for you?" },
+            { client: "I used to be really active. I don't know what happened.", example: "What was different about that time?" },
+            { client: "Sometimes I wonder what my life would be like if I lived for myself instead of everyone else.", example: "What would that look like—living for yourself?" },
+            { client: "I'm scared to disappoint people, but I'm also disappearing.", example: "What matters more to you right now—their comfort or your survival?" }
+          ]
+        },
+        "Rolling with Resistance": {
+          level: "advanced",
+          conceptual: "When clients push back or express ambivalence, it's tempting to defend your position or correct their thinking. Rolling with resistance means accepting their perspective without argument, reflecting the feeling underneath, and leaving the door open. This paradoxically reduces defensiveness and creates space for change.",
+          criteria: "Does not defend, argue, or correct; acknowledges perspective; reflects feeling underneath; leaves door open",
+          criteriaList: [
+            "No defending yourself or your suggestions",
+            "No correcting their 'wrong' thinking",
+            "Acknowledges their perspective as valid for them",
+            "Reflects the emotion/need underneath the resistance",
+            "Leaves space for them to reconsider on their own"
+          ],
+          examples: [
+            {
+              client: "I don't see the point of talking about the past. What's done is done.",
+              response: "Looking back feels like it could stir things up without making anything better."
+            },
+            {
+              client: "You're sitting there all calm and collected. You don't know what it's like to feel this anxious every day.",
+              response: "You're wondering if I can really understand what you're living with."
+            },
+            {
+              client: "My depression isn't the problem. My life is the problem.",
+              response: "From where you sit, the real issue is everything that's happening around you."
+            }
+          ],
+          statements: [
+            { client: "Everyone keeps telling me I need boundaries, but if I say no, people will think I'm selfish.", example: "You're caught between what people are advising and your fear of how they'll see you." },
+            { client: "This is pointless. Talking about it isn't going to change anything.", example: "You're not sure words are going to make a difference here." },
+            { client: "I've been this way my whole life. It's too late to change now.", example: "After all this time, it's hard to imagine being different." },
+            { client: "You don't understand what it's like. You've probably never struggled with anything.", example: "You're wondering if I can really get what you're going through." },
+            { client: "But I actually like helping people. Why is that a problem?", example: "From where you sit, this is part of who you are—someone who values being there for others." }
+          ]
+        }
+      },
+      eft: {
+        "Empathic Understanding": {
+          level: "beginner",
+          conceptual: "Empathic understanding in EFT means staying very close to the client's emotional experience—capturing not just what they're saying, but the feeling underneath. You're helping them feel felt. This creates safety and allows them to go deeper into their experience.",
+          criteria: "Captures emotional essence; uses feeling words; stays close to client's experience",
+          criteriaList: [
+            "Uses emotion words (heavy, stuck, scared, alone)",
+            "Captures the quality of the experience",
+            "Stays very close to what they expressed",
+            "No interpretation or analysis",
+            "Communicates 'I'm with you in this feeling'"
+          ],
+          examples: [
+            {
+              client: "After my mom died, it's like there's this hole inside me that nothing can fill.",
+              response: "An emptiness that stays, even when you're surrounded by people."
+            },
+            {
+              client: "When the panic starts, it feels like I'm drowning and no one can reach me.",
+              response: "A terror that takes over—like you're going under and there's no air."
+            },
+            {
+              client: "I keep replaying what happened, over and over. I can't make it stop.",
+              response: "Your mind keeps pulling you back there, like it's stuck on repeat."
+            }
+          ],
+          statements: [
+            { client: "I don't even recognize myself anymore. I've become whoever everyone else needed me to be.", example: "You've disappeared into all those roles—and now you don't know where you went." },
+            { client: "When I think about saying no, my chest gets tight and I panic.", example: "There's real fear in that boundary—like saying no could cost you everything." },
+            { client: "I keep replaying what happened, over and over. I can't make it stop.", example: "Your mind keeps pulling you back there, like it's stuck on repeat." },
+            { client: "There's this emptiness inside, like I'm performing a life instead of living one.", example: "A hollowness—like you're going through the motions but nothing feels real." },
+            { client: "I want to be myself, but I don't even know who that is anymore.", example: "There's a longing to find yourself again, and also grief for how long you've been lost." }
+          ]
+        },
+        "Empathic Exploration": {
+          level: "intermediate",
+          conceptual: "Empathic exploration invites clients to deepen their awareness of their internal experience—particularly bodily sensations and emotions. You're guiding them gently toward what's present, following their pace, never pushing. The goal is to help them access and articulate what they're feeling in the moment.",
+          criteria: "Invites without pushing; curious tone; follows client's pace; somatic/experiential language",
+          criteriaList: [
+            "Uses invitational language ('I wonder,' 'what's it like')",
+            "References body sensations when present",
+            "Slows down rather than speeds up",
+            "Follows their lead—stops if they resist",
+            "Stays experiential ('what do you notice') not analytical"
+          ],
+          examples: [
+            {
+              client: "When I think about seeing him again, my whole body tenses up.",
+              response: "Notice that tension... what does it want to tell you?"
+            },
+            {
+              client: "I feel this knot in my stomach that never really goes away.",
+              response: "What happens if you just rest your attention on that knot for a moment?"
+            },
+            {
+              client: "It's like I'm watching myself from far away. I can't feel anything.",
+              response: "What's it like to notice that distance right now, between you and your feelings?"
+            }
+          ],
+          statements: [
+            { client: "I felt this tightness in my chest when she said that.", hint: "Deepen into the body sensation", example: "Stay with that tightness for a moment... what's there?" },
+            { client: "I just went numb. I couldn't feel anything.", hint: "Explore the numbness itself", example: "What's it like to notice that numbness right now?" },
+            { client: "There's something sad underneath all the anger.", hint: "Invite contact with the sadness", example: "Can you let yourself touch that sadness a little?" },
+            { client: "I keep pushing it away. I don't want to go there.", hint: "Explore the fear of going there", example: "What do you sense might happen if you let yourself go there?" },
+            { client: "It's like there's a wall between me and what I really feel.", hint: "Use the image", example: "What would you see if you could look over that wall?" }
+          ]
+        },
+        "Empathic Conjecture": {
+          level: "advanced",
+          conceptual: "Empathic conjecture goes slightly beyond what the client has explicitly stated, offering a possibility about their deeper experience. It's always tentative ('I wonder if...') and should feel like you're extending a hand into new territory—they can take it or not. Done well, it helps clients access previously unconscious material.",
+          criteria: "Tentative ('I wonder if...'); goes slightly beyond explicit; opens new territory without imposing",
+          criteriaList: [
+            "Always prefaced with tentative language",
+            "Goes one step deeper than what's explicit",
+            "Offers a possibility, never a conclusion",
+            "Client can reject it without therapist attachment",
+            "Often connects present experience to deeper patterns"
+          ],
+          examples: [
+            {
+              client: "I don't know why I sabotage things when they start going well.",
+              response: "I wonder if part of you learned early on that good things don't last... so maybe it feels safer to end them first."
+            },
+            {
+              client: "When people get close, I find reasons to push them away.",
+              response: "It sounds like closeness got connected to danger somewhere along the way... like letting someone in means getting hurt."
+            },
+            {
+              client: "I'm always waiting for the other shoe to drop.",
+              response: "There's something so exhausting in that—like hope became too risky, so you're always bracing for loss."
+            }
+          ],
+          statements: [
+            { client: "I don't know why I can't just tell people what I really think.", example: "I wonder if somewhere along the way, you learned that your real thoughts and feelings were too much... so it felt safer to keep them hidden." },
+            { client: "Every time someone asks me for help, I say yes—even when I have nothing left to give.", example: "It sounds like maybe saying no got linked to being selfish or bad... like your worth depends on how much you give away." },
+            { client: "I take care of everyone else. That's just who I am.", example: "I'm wondering if underneath that there might be a longing to be taken care of too..." },
+            { client: "He never really saw me. No one did.", example: "There's something so lonely in that... like a part of you has been waiting a long time to be really seen." },
+            { client: "I'm afraid if I show people the real me, they'll leave.", example: "It sounds like being yourself got connected to rejection somewhere... like authenticity became dangerous." }
+          ]
+        },
+        "Staying with Affect": {
+          level: "advanced",
+          conceptual: "When strong emotion emerges—tears, anger, silence—the instinct is often to move away, reassure, or problem-solve. Staying with affect means resisting that urge and instead creating space for the feeling to be fully present. You communicate safety through your willingness to be with whatever arises.",
+          criteria: "Does not redirect or problem-solve; validates; slows down; communicates presence and safety",
+          criteriaList: [
+            "No rushing to fix or soothe",
+            "No redirecting to 'less painful' topics",
+            "Validates that the emotion makes sense",
+            "Slows down—uses silence and pauses",
+            "Communicates 'I can handle this with you'"
+          ],
+          examples: [
+            {
+              client: "[voice shaking] I miss her so much it physically hurts.",
+              response: "I'm here. That grief is real. Take all the time you need."
+            },
+            {
+              client: "[breathing rapidly] I can't... I can't do this... it's too much...",
+              response: "[Soft, steady voice] You're safe here. I'm right here with you. Just breathe."
+            },
+            {
+              client: "[goes silent, staring down, shoulders shaking]",
+              response: "[Quiet presence] Something powerful is here... I'm with you."
+            }
+          ],
+          statements: [
+            { client: "[tears up] Sorry, I don't know where that came from.", example: "Take your time... those tears make sense to me." },
+            { client: "[voice breaks] I just... I can't...", example: "I'm right here. You don't have to find words." },
+            { client: "[goes silent, looks down]", example: "[Soft voice] Something important is happening right now." },
+            { client: "[flatly] It doesn't matter anyway.", example: "I hear you saying that... and I wonder if there's more underneath." },
+            { client: "[starts crying, then apologizes]", example: "No need to apologize. There's space for whatever's here." }
+          ]
+        },
+        "Rupture Repair": {
+          level: "advanced",
+          conceptual: "Ruptures happen in every therapeutic relationship—moments where the client feels misunderstood, judged, or hurt. The key is not to defend or explain, but to acknowledge their experience, take responsibility where appropriate, and explore what happened together. This often deepens the relationship.",
+          criteria: "Does not defend; expresses interest in client's experience; takes appropriate responsibility; invites collaboration",
+          criteriaList: [
+            "No defending or explaining yourself",
+            "Genuine curiosity about their experience",
+            "Takes responsibility without over-apologizing",
+            "Validates that their feeling makes sense",
+            "Invites collaboration to repair together"
+          ],
+          examples: [
+            {
+              client: "I don't think you understand what it's like to deal with this kind of trauma.",
+              response: "You're right to wonder if I can fully get it. Help me understand what I'm missing about your experience."
+            },
+            {
+              client: "When you said that last week, it felt like you were minimizing what I went through.",
+              response: "That matters—something I said landed wrong. What did you hear me saying?"
+            },
+            {
+              client: "Sometimes I wonder if you actually care or if this is just your job.",
+              response: "That's important to talk about. What's happened that's made you question whether I care?"
+            }
+          ],
+          statements: [
+            { client: "I don't think you really get what I'm going through.", example: "Something I've done has left you feeling unseen. Can you help me understand what I'm missing?" },
+            { client: "Last session felt off. I left feeling worse.", example: "That's important—something didn't work. What felt off to you?" },
+            { client: "You keep pushing me to feel things I'm not ready to feel.", example: "I've been moving faster than what feels safe for you. That's on me." },
+            { client: "I feel like you're judging me.", example: "That must make it hard to be open here. What have I done that felt like judgment?" },
+            { client: "Maybe this isn't working.", example: "I want to hear that. What would need to be different for it to work?" }
+          ]
+        }
+      }
+    };
+
+    // State
+    let currentMode = null;
+    let currentSkill = null;
+    let currentStatements = [];
+    let currentIndex = 0;
+    let responses = [];
+    let inActivePractice = false;
+
+    // Elements
+    const modeSelect = document.getElementById('modeSelect');
+    const skillSelect = document.getElementById('skillSelect');
+    const learningScreen = document.getElementById('learningScreen');
+    const customInput = document.getElementById('customInput');
+    const practiceScreen = document.getElementById('practiceScreen');
+    const completionScreen = document.getElementById('completionScreen');
+    const skillList = document.getElementById('skillList');
+    const navHomeBtn = document.getElementById('navHomeBtn');
+    const navProgress = document.getElementById('navProgress');
+    const navProgressFill = document.getElementById('navProgressFill');
+    const navProgressText = document.getElementById('navProgressText');
+
+    // Symbol mapping
+    const symbolMap = {
+      mi: 'ᚱ',
+      eft: '◬'
+    };
+    
+    // Encouraging messages
+    const encouragements = [
+      "You got this!",
+      "Building these skills honors your authentic self.",
+      "Every response is practice—there's no 'perfect'.",
+      "Trust your instincts and try it out.",
+      "You're learning to hold space for others and yourself.",
+      "These conversations matter—keep going.",
+      "You're more than halfway there!",
+      "Your voice matters in this work.",
+      "Almost done—finish strong!",
+      "You're building the skills to support real change."
+    ];
+
+    // Navigation Management
+    function updateNavigation(screen) {
+      // Always show home button except on home screen
+      // Show progress only during active practice
+      if (screen === 'practice') {
+        navProgress.style.display = 'flex';
+        inActivePractice = true;
+      } else {
+        navProgress.style.display = 'none';
+        if (screen === 'completion') {
+          inActivePractice = false;
+        }
+      }
+    }
+    
+    // Update progress in nav bar
+    function updateNavProgress() {
+      if (inActivePractice) {
+        const progress = ((currentIndex + 1) / currentStatements.length) * 100;
+        navProgressFill.style.width = `${progress}%`;
+        navProgressText.textContent = `${currentIndex + 1} / ${currentStatements.length}`;
+      }
+    }
+    
+    navHomeBtn.addEventListener('click', () => {
+      if (inActivePractice) {
+        const progress = currentIndex + 1;
+        const total = currentStatements.length;
+        if (confirm(`You're ${progress}/${total} through this practice session. Your progress will be lost if you return home. Continue practicing?`)) {
+          return; // Stay in practice
+        }
+      }
+      returnToHome();
+    });
+    
+    function returnToHome() {
+      // Hide all screens
+      skillSelect.classList.add('hidden');
+      learningScreen.classList.add('hidden');
+      customInput.classList.add('hidden');
+      practiceScreen.classList.remove('active');
+      practiceScreen.classList.add('hidden');
+      completionScreen.classList.remove('active');
+      
+      // Show home
+      modeSelect.classList.remove('hidden');
+      updateNavigation('home');
+      inActivePractice = false;
+      
+      // Reset state
+      currentMode = null;
+      currentSkill = null;
+      currentStatements = [];
+      currentIndex = 0;
+      responses = [];
+    }
+
+    // Mode Selection
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentMode = btn.dataset.mode;
+        if (currentMode === 'custom') {
+          modeSelect.classList.add('hidden');
+          customInput.classList.remove('hidden');
+          updateNavigation('custom');
+        } else {
+          modeSelect.classList.add('hidden');
+          skillSelect.classList.remove('hidden');
+          updateNavigation('skillSelect');
+          renderSkillList();
+        }
+      });
+    });
+
+    // Back buttons
+    document.getElementById('backToMode').addEventListener('click', () => {
+      skillSelect.classList.add('hidden');
+      modeSelect.classList.remove('hidden');
+      updateNavigation('home');
+    });
+
+    document.getElementById('backToSkills').addEventListener('click', () => {
+      learningScreen.classList.add('hidden');
+      skillSelect.classList.remove('hidden');
+      updateNavigation('skillSelect');
+    });
+
+    document.getElementById('backFromCustom').addEventListener('click', () => {
+      customInput.classList.add('hidden');
+      modeSelect.classList.remove('hidden');
+      updateNavigation('home');
+    });
+
+    // Skill tabs
+    document.querySelectorAll('.skill-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.skill-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderSkillList(tab.dataset.level);
+      });
+    });
+
+    function renderSkillList(levelFilter = 'all') {
+      let skills = [];
+      
+      if (currentMode === 'mi') {
+        skills = Object.entries(exercises.mi).map(([name, data]) => ({ name, ...data, type: 'mi' }));
+      } else if (currentMode === 'eft') {
+        skills = Object.entries(exercises.eft).map(([name, data]) => ({ name, ...data, type: 'eft' }));
+      } else if (currentMode === 'mixed') {
+        skills = [
+          ...Object.entries(exercises.mi).map(([name, data]) => ({ name, ...data, type: 'mi' })),
+          ...Object.entries(exercises.eft).map(([name, data]) => ({ name, ...data, type: 'eft' }))
+        ];
+      }
+      
+      if (levelFilter !== 'all') {
+        skills = skills.filter(s => s.level === levelFilter);
+      }
+      
+      skillList.innerHTML = skills.map(skill => `
+        <button class="skill-btn" data-skill="${skill.name}" data-type="${skill.type}">
+          <span class="name">
+            <span class="symbol">${symbolMap[skill.type]}</span>
+            ${skill.name}
+          </span>
+          <span class="level level-${skill.level}">${skill.level}</span>
+        </button>
+      `).join('');
+      
+      document.querySelectorAll('.skill-btn').forEach(btn => {
+        btn.addEventListener('click', () => showLearning(btn.dataset.skill, btn.dataset.type));
+      });
+    }
+
+    function showLearning(skillName, type) {
+      currentSkill = { name: skillName, type };
+      const exerciseData = exercises[type][skillName];
+      
+      // Populate learning screen
+      document.getElementById('learningType').textContent = type === 'mi' ? 'Motivational Interviewing' : 'Emotion-Focused Therapy';
+      document.getElementById('learningTitle').textContent = skillName;
+      document.getElementById('conceptualDef').textContent = exerciseData.conceptual;
+      
+      // Populate criteria list
+      const criteriaList = document.getElementById('criteriaList');
+      criteriaList.innerHTML = exerciseData.criteriaList.map(item => 
+        `<li>${item}</li>`
+      ).join('');
+      
+      // Populate examples
+      const examplesGrid = document.getElementById('examplesGrid');
+      examplesGrid.innerHTML = exerciseData.examples.map(ex => `
+        <div class="example-card">
+          <div class="client-quote">"${ex.client}"</div>
+          <div class="therapist-response">Your response</div>
+          <div class="response-text">"${ex.response}"</div>
+        </div>
+      `).join('');
+      
+      // Show learning screen
+      skillSelect.classList.add('hidden');
+      learningScreen.classList.remove('hidden');
+      updateNavigation('learning');
+    }
+
+    // Start practice from learning screen
+    document.getElementById('startPracticeBtn').addEventListener('click', () => {
+      const exerciseData = exercises[currentSkill.type][currentSkill.name];
+      currentStatements = [...exerciseData.statements];
+      currentIndex = 0;
+      responses = [];
+      inActivePractice = true;
+      
+      // Shuffle
+      currentStatements.sort(() => Math.random() - 0.5);
+      
+      learningScreen.classList.add('hidden');
+      practiceScreen.classList.add('hidden');
+      practiceScreen.classList.remove('hidden');
+      practiceScreen.classList.add('active');
+      updateNavigation('practice');
+      
+      document.getElementById('skillName').textContent = `${symbolMap[currentSkill.type]} ${currentSkill.name}`;
+      document.getElementById('criteriaText').textContent = exerciseData.criteria;
+      
+      showStatement();
+    });
+
+    // Custom practice
+    document.getElementById('startCustom').addEventListener('click', () => {
+      const statement = document.getElementById('customStatement').value.trim();
+      const skill = document.getElementById('customSkill').value;
+      
+      if (!statement) {
+        alert('Please enter a client statement');
+        return;
+      }
+      
+      currentSkill = { name: skill, type: 'custom' };
+      currentStatements = [{ client: statement, example: '(Your own reflection)', hint: '' }];
+      currentIndex = 0;
+      responses = [];
+      inActivePractice = true;
+      
+      customInput.classList.add('hidden');
+      practiceScreen.classList.remove('hidden');
+      practiceScreen.classList.add('active');
+      updateNavigation('practice');
+      
+      document.getElementById('skillName').textContent = `✧ Custom: ${formatSkillName(skill)}`;
+      document.getElementById('criteriaText').textContent = getCustomCriteria(skill);
+      
+      showStatement();
+    });
+
+    function formatSkillName(skill) {
+      const nameMap = {
+        'reflection': 'Simple Reflection',
+        'complex-reflection': 'Complex Reflection',
+        'change-talk': 'Elicit Change Talk',
+        'roll-resistance': 'Roll with Resistance',
+        'empathic-understanding': 'Empathic Understanding',
+        'empathic-exploration': 'Empathic Exploration',
+        'empathic-conjecture': 'Empathic Conjecture',
+        'stay-with-affect': 'Stay with Affect'
+      };
+      return nameMap[skill] || skill;
+    }
+
+    function getCustomCriteria(skill) {
+      const criteria = {
+        'reflection': 'Captures essence without parroting; no questions; no advice',
+        'complex-reflection': 'Names or implies emotional state; tentative tone',
+        'change-talk': 'Invites client to voice their own reasons for change',
+        'roll-resistance': 'Does not defend or argue; acknowledges perspective',
+        'empathic-understanding': 'Captures emotional essence; uses feeling words',
+        'empathic-exploration': 'Invites without pushing; curious tone',
+        'empathic-conjecture': 'Tentative; goes slightly beyond explicit',
+        'stay-with-affect': 'Does not redirect; validates; slows down'
+      };
+      return criteria[skill] || '';
+    }
+
+    function showStatement() {
+      const statement = currentStatements[currentIndex];
+      document.getElementById('clientStatement').textContent = `"${statement.client}"`;
+      document.getElementById('affectHint').textContent = statement.hint || '';
+      document.getElementById('affectHint').style.display = statement.hint ? 'block' : 'none';
+      document.getElementById('exampleText').textContent = statement.example;
+      document.getElementById('responseInput').value = '';
+      document.getElementById('exampleSection').classList.remove('visible');
+      document.getElementById('showExample').textContent = 'Show Example';
+      
+      // Update progress
+      document.getElementById('counter').textContent = `${currentIndex + 1} / ${currentStatements.length}`;
+      document.getElementById('progressFill').style.width = `${((currentIndex) / currentStatements.length) * 100}%`;
+      
+      // Update nav progress
+      updateNavProgress();
+      
+      // Update encouragement
+      let encouragementText = '';
+      const progress = currentIndex + 1;
+      const total = currentStatements.length;
+      
+      if (progress === 1) {
+        encouragementText = "Take your time with each response.";
+      } else if (progress === 2) {
+        encouragementText = "You got this!";
+      } else if (progress === 3) {
+        encouragementText = "Building these skills honors your authentic self.";
+      } else if (progress === Math.ceil(total / 2)) {
+        encouragementText = "You're more than halfway there!";
+      } else if (progress === total - 1) {
+        encouragementText = "Almost done—finish strong!";
+      } else if (progress % 2 === 0) {
+        encouragementText = "Your voice matters in this work.";
+      } else {
+        encouragementText = "Every response is practice—there's no 'perfect'.";
+      }
+      
+      document.getElementById('encouragementText').textContent = encouragementText;
+    }
+
+    // Show example
+    document.getElementById('showExample').addEventListener('click', () => {
+      const section = document.getElementById('exampleSection');
+      const btn = document.getElementById('showExample');
+      if (section.classList.contains('visible')) {
+        section.classList.remove('visible');
+        btn.textContent = 'Show Example';
+      } else {
+        section.classList.add('visible');
+        btn.textContent = 'Hide Example';
+      }
+    });
+
+    // Next button
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      responses.push({
+        statement: currentStatements[currentIndex].client,
+        response: document.getElementById('responseInput').value,
+        example: currentStatements[currentIndex].example
+      });
+      
+      currentIndex++;
+      
+      if (currentIndex >= currentStatements.length) {
+        showCompletion();
+      } else {
+        showStatement();
+      }
+    });
+
+    function showCompletion() {
+      practiceScreen.classList.remove('active');
+      completionScreen.classList.add('active');
+      document.getElementById('completedCount').textContent = currentStatements.length;
+      document.getElementById('progressFill').style.width = '100%';
+      inActivePractice = false;
+      updateNavigation('completion');
+    }
+
+    // Restart
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      returnToHome();
+    });
+
+    // Review
+    document.getElementById('reviewBtn').addEventListener('click', () => {
+      let review = responses.map((r, i) => 
+        `--- ${i + 1} ---\nClient: "${r.statement}"\n\nYour response: ${r.response || '(not recorded)'}\n\nExample: ${r.example}`
+      ).join('\n\n');
+      
+      alert(review);
+    });
+  </script>
+</body>
+</html>
